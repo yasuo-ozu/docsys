@@ -1,0 +1,50 @@
+#!/bin/env perl
+
+# cat input_file | unwrap tmpdir > output_file
+
+@fname_list=();
+@real_fname_list=();
+$fname=undef;
+
+$tmpdir=$ARGV[0];
+`mkdir -p "$tmpdir"`;
+
+while (<STDIN>) {
+	if (/^%%/) {
+		s/^%%//g;
+		if ($fname) {
+			print FH "$_";
+		} else {
+			chomp;
+			s/^\s*//;
+			s/\s*$//;
+			die "bad filename '$_'" if (!/^[^\/]+\.[^\/]+/);
+			$fname = $_;
+			open (FH, "> $tmpdir/$fname");
+			$fname2 = $fname;
+			$fname2 =~ s/\..+$//;
+			push(@fname_list, $fname2);
+		}
+	} else {
+		if ($fname) {
+			close FH;
+			$hash = `md5sum "$tmpdir/$fname"`;
+			chomp $hash;
+			$hash =~ s/^\s*//;
+			$hash =~ s/ .*$//;
+			$ext = $fname;
+			$ext =~ s/^[^\.]+//;
+			$real_fname = "$tmpdir/$hash" . $ext;
+			`mv "$tmpdir/$fname" "$real_fname"`;
+			$real_fname =~ s/\.[^\/]+$//;
+			push(@real_fname_list, $real_fname);
+			$fname = undef;
+		}
+		for ($i = 0; $i <= $#fname_list; $i++) {
+			s/$fname_list[$i]/$real_fname_list[$i]/g;
+		}
+		print;
+	}
+}
+
+close FH if $fname;
