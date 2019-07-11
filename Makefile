@@ -83,4 +83,10 @@ reference.bib:
 	$(SYSDIR)/bin/gend "$<" "$(patsubst %.tex,%.pdf,$<)" > $@
 -include $(patsubst %.tex,%.d,$(wildcard ./*.tex) $(wildcard ./**/*.tex))
 	
+# image
+
+svg/%.pdf:	svg/%.svg
+	inkscape -f $< -A $@
+svg/%.png:	svg/%.svg
+	convert -units PixelsPerInch -density 72x72 $< $@
 
