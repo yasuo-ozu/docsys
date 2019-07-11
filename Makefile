@@ -47,7 +47,7 @@ clean:
 # LaTeX
 
 %.pdf:	%.dvi Makefile
-	dvipdfmx $(basename $<)
+	dvipdfmx $(basename $<) 2>&1
 	qpdf --linearize $@ linearized_$@
 	rm -f $@
 	mv linearized_$@ $@
@@ -56,12 +56,15 @@ reference.bib:
 
 .SECONDARY:	%.dvi
 %.dvi:	%.tex %.d reference.bib Makefile
-	platex --shell-escape -interaction=batchmode -halt-on-error $<
+	@if ! platex --shell-escape -interaction=batchmode -halt-on-error $< 1>/dev/null ; then\
+		cat $(basename $<).log | grep -e "^!" -A 10 1>&2 ;\
+		false ;\
+	fi
 	if [ -s "reference.bib" ]; then pbibtex $(basename $<) ; fi
-	if [ -s "reference.bib" ]; then platex --shell-escape -interaction=batchmode -halt-on-error $< ; fi
+	if [ -s "reference.bib" ]; then platex --shell-escape -interaction=batchmode -halt-on-error $<  &>/dev/null; fi
 	for i in `seq 1 3`; do\
 		if grep -F 'Rerun to get cross-references right.' $(basename $<).log; then\
-			platex --shell-escape -interaction=batchmode -halt-on-error $<; else exit 0;\
+			platex --shell-escape -interaction=batchmode -halt-on-error $< &>/dev/null; else exit 0;\
 		fi;\
 	done
 
