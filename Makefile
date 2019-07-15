@@ -3,7 +3,7 @@
 DOCSYS=.docsys
 TMPDIR=.unwrap-temp
 SYSDIR=$(abspath $(if $(filter $(DOCSYS),$(notdir $(CURDIR))),.,$(DOCSYS)))
-CLEANING_FILE=$(TMPDIR) *.d *.out.saty *.pdf *.log *.aux *.dvi *.fls *.bbl *.blg 
+CLEANING_FILE=$(TMPDIR) *.d *.out.saty *.pdf *.log *.aux *.dvi *.fls *.bbl *.blg *.nav *.out *.toc *.snm
 
 SHELL=/bin/bash
 VPATH=$(SYSDIR)
