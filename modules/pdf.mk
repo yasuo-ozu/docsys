@@ -1,10 +1,16 @@
-TARGET_SUFFIXES+=pdf dvi log aux d fls
+TARGET_SUFFIXES+=pdf dvi log aux d fls bbl blg nav out snm toc
 SOURCES_d+=tex
 SOURCES_pdf+=dvi $(SOURCES_dvi)
 SOURCES_fls+=tex
 SOURCES_dvi+=tex
 SOURCES_log+=tex
 SOURCES_aux+=tex
+SOURCES_bbl+=tex
+SOURCES_blg+=tex
+SOURCES_nav+=tex
+SOURCES_out+=tex
+SOURCES_snm+=tex
+SOURCES_toc+=tex
 
 %.pdf:	%.dvi $(SYSDIR)
 	dvipdfmx $(basename $<) 2>&1

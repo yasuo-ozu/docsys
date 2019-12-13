@@ -18,10 +18,11 @@ while (<FH>) {
 		}
 	} else {
 		while (s/[A-Za-z0-9_\-][A-Za-z0-9_\-\.\/]*\.(bmp|jpg|pdf|txt|saty|tex|eps)//) {
-			print "DEPS_$base+=$&\n";
-			s{^.*/|\.[^.]+$}{}g;
-			print "DEPS_$base+=\$(DEPS_$&)\n";
-			print "REFS_$&+=$base\n";
+			my $match = $&;
+			print "DEPS_$base+=$match\n";
+			$match =~ s{^.*/|\.[^.]+$}{}g;
+			print "DEPS_$base+=\$(DEPS_$match)\n";
+			print "REFS_$match+=$base\n";
 		}
 	}
 }
