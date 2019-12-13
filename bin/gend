@@ -1,43 +1,28 @@
 #!/bin/env perl
 
-sub create_dependency {
-	($file, $rule, $prefix) = @_;
-	@repeat_list=();
-	open(FH, "< $file");
-	while (<FH>) {
-		s/%.*$//;
-		if (s/^\@import://) {
-			s/^\s*//;
-			s/\s*$//;
-			my @saty_list = ("$_.saty", "$_.satyh");
-			foreach my $f (@saty_list) {
-				if (-e $f) {
-					print "$rule:\t$f\n";
-					push(@repeat_list, $f);
-				}
-			}
-		} else {
-			while (s/[A-Za-z0-9_\-][A-Za-z0-9_\-\.\/]*\.(bmp|jpg|pdf|txt|saty|tex|eps)//) {
-				print "$rule:\t$prefix$&\n";
-				push(@repeat_list, $&);
-			}
-			while (s/\\bibliography\{([A-Za-z0-9_\-]+)\}//) {
-				print "$rule:\t$prefix$&.bib\n";
-			}
-		}
-	}
-	foreach my $f (@repeat_list) {
-		if ($f =~ /\.saty$/ or $f =~ /\.satyh/) {
-			$prefix2 = $f;
-			$prefix2 =~ s/[^\/]*$//;
-			create_dependency("$prefix$f", $rule, "$prefix$prefix2");
-		}
-	}
-	close FH;
-}
+use File::Basename 'basename', 'dirname';
 
-$file_name = $ARGV[0];
-$rule_name = $ARGV[1];
-$prefix = $rule_name;
-$prefix =~ s/[^\/]+$//;
-create_dependency($file_name, $rule_name, $prefix);
+my $file = $ARGV[0];
+(my $base = $file) =~ s{^.*/|\.[^.]+$}{}g;
+open(FH, "< $file");
+while (<FH>) {
+	s/%.*$//;
+	if (s/^\@import://) {
+		s/^\s*//;
+		s/\s*$//;
+		my @saty_list = ("$_.saty", "$_.satyh");
+		foreach my $f (@saty_list) {
+			if (-e $f) {
+				print "$rule:\t$f\n";
+			}
+		}
+	} else {
+		while (s/[A-Za-z0-9_\-][A-Za-z0-9_\-\.\/]*\.(bmp|jpg|pdf|txt|saty|tex|eps)//) {
+			print "DEPS_$base+=$&\n";
+			s{^.*/|\.[^.]+$}{}g;
+			print "DEPS_$base+=\$(DEPS_$&)\n";
+			print "REFS_$&+=$base\n";
+		}
+	}
+}
+close FH;
