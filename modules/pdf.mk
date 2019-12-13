@@ -1,4 +1,5 @@
-TARGET_SUFFIXES+=pdf dvi log aux d fls bbl blg nav out snm toc
+TARGET_SUFFIXES+=pdf
+INTERMEDIATE_SUFFIXES+=dvi log aux d fls bbl blg nav out snm toc
 SOURCES_d+=tex
 SOURCES_pdf+=dvi $(SOURCES_dvi)
 SOURCES_fls+=tex

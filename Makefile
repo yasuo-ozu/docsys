@@ -30,13 +30,18 @@ uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 
 # Load modules
 TARGET_SUFFIXES=
+INTERMEDIATE_SUFFIXES=
 -include $(wildcard $(SYSDIR)/modules/*.mk)
 TARGET_SUFFIXES2:=$(TARGET_SUFFIXES)
 override TARGET_SUFFIXES:=$(call uniq,$(TARGET_SUFFIXES2))
+INTERMEDIATE_SUFFIXES2:=$(INTERMEDIATE_SUFFIXES)
+override INTERMEDIATE_SUFFIXES:=$(call uniq,$(INTERMEDIATE_SUFFIXES2))
 
 TARGETS:=$(call uniq,$(foreach sf,$(TARGET_SUFFIXES),$(foreach suff,$(SOURCES_$(sf)),$(patsubst %.$(suff),%.$(sf),$(foreach dir,$(DIRS),$(wildcard $(dir)/*.$(suff)))))))
+INTERMEDIATES:=$(call uniq,$(foreach sf,$(INTERMEDIATE_SUFFIXES),$(foreach suff,$(SOURCES_$(sf)),$(patsubst %.$(suff),%.$(sf),$(foreach dir,$(DIRS),$(wildcard $(dir)/*.$(suff)))))))
 UNREFED_TARGETS:=$(foreach f,$(TARGETS),$(if $(wildcard $(basename $(f)).ref),,$(f)))
-TOPLEVEL_TARGETS:=$(foreach f2,$(FINAL_TARGETS),$(filter %.$(f2),$(UNREFED_TARGETS)))
+ROOT_UNREFED_TARGETS=$(foreach file,$(UNREFED_TARGETS),$(if $(patsubst ./,,$(dir $(file))),,$(file)))
+TOPLEVEL_TARGETS:=$(foreach f2,$(FINAL_TARGETS),$(filter %.$(f2),$(ROOT_UNREFED_TARGETS)))
 
 ifdef OPEN
 # Convert source suffix to target suffix
@@ -67,7 +72,8 @@ endif
 	+echo "UNREFED_TARGETS = $(UNREFED_TARGETS)"
 	+echo "TOPLEVEL_TARGETS = $(TOPLEVEL_TARGETS)"
 	+echo "TARGET_SUFFIXES = $(TARGET_SUFFIXES)"
-	+echo -ne " $(foreach sf,$(TARGET_SUFFIXES),SOURCES_$(sf) = $(SOURCES_$(sf))\\n)"
+	+echo "INTERMEDIATE_SUFFIXES = $(INTERMEDIATE_SUFFIXES)"
+	+echo -ne " $(foreach sf,$(call uniq,$(TARGET_SUFFIXES) $(INTERMEDIATE_SUFFIXES)),SOURCES_$(sf) = $(SOURCES_$(sf))\\n)"
 	
 .PHONY: toplevels
 toplevels:	$(TOPLEVEL_TARGETS)
@@ -102,13 +108,13 @@ else
 endif
 endif
 
-INTERMEDIATE_FILES:=$(foreach s,$(TARGET_SUFFIXES),$(foreach ss,$(SOURCES_$(s)),$(patsubst %.$(ss),%.$(s),$(foreach d,$(DIRS),$(wildcard $(d)/*.$(ss))))))
+REMOVABLE_FILES:=$(INTERMEDIATES) $(TARGETS)
 
 .PHONY:	clean
 clean:
-	@rm -rf $(filter-out $(TOPLEVEL_TARGETS),$(INTERMEDIATE_FILES))
+	rm -rf $(filter-out $(TOPLEVEL_TARGETS),$(REMOVABLE_FILES))
 
 .PHONY:	distclean
 distclean:
-	@rm -rf $(INTERMEDIATE_FILES)
+	rm -rf $(REMOVABLE_FILES)
 
