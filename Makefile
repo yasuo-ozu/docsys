@@ -114,6 +114,7 @@ REMOVABLE_FILES:=$(INTERMEDIATES) $(TARGETS)
 clean:
 	rm -rf $(filter-out $(TOPLEVEL_TARGETS),$(REMOVABLE_FILES))
 	@echo $(filter-out .,$(foreach d,$(DIRS),$(if $(wildcard $(d)/$(MAKEFILE)),$(d)))) | xargs -I{} $(MAKE) -C {} clean
+	@echo info: To delete all generated files, run $(MAKE) distclean
 
 .PHONY:	distclean
 distclean:	clean
