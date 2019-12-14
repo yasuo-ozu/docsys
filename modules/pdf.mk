@@ -41,8 +41,9 @@ ifeq (,$(shell [ -s $(dir $<)/reference.bib ] || echo n))
 endif
 	@for i in `seq 1 3`; do\
 		if grep -qF 'Rerun to get cross-references right.' $(basename $<).log; then\
-			echo $(TEX_BIN) $(TEX_FLAGS) $<\
-			$(TEX_BIN) $(TEX_FLAGS) $< &>/dev/null; else exit 0;\
+			echo $(TEX_BIN) $(TEX_FLAGS) $< ;\
+			$(TEX_BIN) $(TEX_FLAGS) $< &>/dev/null; \
+		else exit 0;\
 		fi;\
 	done
 
