@@ -1,29 +1,26 @@
 #!/bin/env perl
 
-use File::Basename 'basename', 'dirname';
-
+# $file is relative path from project root
 my $file = $ARGV[0];
-(my $base = $file) =~ s{^.*/|\.[^.]+$}{}g;
+(my $ext = $file) =~ s{^.*\.}{}g;
+(my $base = $file) =~ s{\.[^.]+$}{}g;
+(my $ident = $base) =~ s{/}{_DS_}g;
+$ident =~ s{\.}{_DOT_}g;
 open(FH, "< $file");
-while (<FH>) {
-	s/%.*$//;
-	if (s/^\@import://) {
-		s/^\s*//;
-		s/\s*$//;
-		my @saty_list = ("$_.saty", "$_.satyh");
-		foreach my $f (@saty_list) {
-			if (-e $f) {
-				print "$rule:\t$f\n";
-			}
-		}
-	} else {
+if ($ext == "tex") {
+	while (<FH>) {
+		s/%.*$//;
 		while (s/[A-Za-z0-9_\-][A-Za-z0-9_\-\.\/]*\.(bmp|jpg|pdf|txt|saty|tex|eps)//) {
-			my $match = $&;
-			print "DEPS_$base+=$match\n";
-			$match =~ s{^.*/|\.[^.]+$}{}g;
-			print "DEPS_$base+=\$(DEPS_$match)\n";
-			print "REFS_$match+=$base\n";
+			my $file2 = $&;
+			(my $base2 = $file2) =~ s{\.[^.]+$}{}g;
+			(my $ident2 = $base2) =~ s{/}{_DS_}g;
+			$ident2 =~ s{\.}{_DOT_}g;
+			print "-include $base2.d\n";
+			print "DEPS_$ident+=$file2\n";
+			print "DEPS_$ident+=\$(DEPS_$ident2)\n";
+			print "REFS_$ident2+=$file\n";
 		}
 	}
+	print "$base.dvi:	\$(DEPS_$ident)\n";
 }
 close FH;

@@ -29,7 +29,7 @@ TEX_FLAGS?=--shell-escape -interaction=batchmode -halt-on-error
 PBIBTEX_BIN?=pbibtex
 
 .SECONDARY:	%.dvi
-%.dvi:	%.tex $(DEPS_$(notdir %)) %.d reference.bib $(SYSDIR)
+%.dvi:	%.tex reference.bib $(SYSDIR)
 	@echo $(TEX_BIN) $(TEX_FLAGS) $<
 	@$(TEX_BIN) $(TEX_FLAGS) $< 1>/dev/null; if [ ! -f $(basename $<).dvi ]; then\
 		cat $(basename $<).log | grep -e "^!" -A 10 1>&2 ;\
@@ -51,9 +51,7 @@ endif
 	$(TEX_BIN) -interaction=nonstopmode --shell-escape -recorder $<
 
 .SECONDARY:	%.d
-%.d:	%.tex $(wildcard ./*.tex) $(wildcard ./**/*.tex)
-	$(SYSDIR)/bin/gend "$<" "$(patsubst %.tex,%.pdf,$<)" > $@
+%.d:	%.tex
+	$(SYSDIR)/bin/gend "$<" > $@
 	
-# bbl blg nav out toc snm vrb
-
--include $(patsubst %.tex,%.d,$(wildcard ./*.tex) $(wildcard ./**/*.tex))
+-include $(foreach d,$(DIRS),$(patsubst %.tex,%.d,$(wildcard $(d)/*.tex)))

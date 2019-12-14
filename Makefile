@@ -26,7 +26,6 @@ DIRS:=$(shell find . -type d | sed -e '/^\.\/\.[^\/]\+/d')
 MAKEFILE=Makefile
 uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 
--include $(foreach d,$(DIRS),$(wildcard $(d)/*.d))
 
 # Load modules
 TARGET_SUFFIXES=
@@ -41,7 +40,8 @@ TARGETS:=$(call uniq,$(foreach sf,$(TARGET_SUFFIXES),$(foreach suff,$(SOURCES_$(
 INTERMEDIATES:=$(call uniq,$(foreach sf,$(INTERMEDIATE_SUFFIXES),$(foreach suff,$(SOURCES_$(sf)),$(patsubst %.$(suff),%.$(sf),$(foreach dir,$(DIRS),$(wildcard $(dir)/*.$(suff)))))))
 UNREFED_TARGETS:=$(foreach f,$(TARGETS),$(if $(wildcard $(basename $(f)).ref),,$(f)))
 ROOT_UNREFED_TARGETS=$(foreach file,$(UNREFED_TARGETS),$(if $(patsubst ./,,$(dir $(file))),,$(file)))
-TOPLEVEL_TARGETS:=$(foreach f2,$(FINAL_TARGETS),$(filter %.$(f2),$(ROOT_UNREFED_TARGETS)))
+TOPLEVEL_TARGETS2:=$(foreach f2,$(FINAL_TARGETS),$(filter %.$(f2),$(ROOT_UNREFED_TARGETS)))
+TOPLEVEL_TARGETS:=$(foreach f,$(TOPLEVEL_TARGETS2),$(if $(REFS_$($(shell echo $(basename $(f)) | sed -e 's/\//_DS_/g' | sed -e 's/\./_DOT_/g'))),,$(f)))
 
 ifdef OPEN
 # Convert source suffix to target suffix
@@ -113,8 +113,9 @@ REMOVABLE_FILES:=$(INTERMEDIATES) $(TARGETS)
 .PHONY:	clean
 clean:
 	rm -rf $(filter-out $(TOPLEVEL_TARGETS),$(REMOVABLE_FILES))
+	@echo $(filter-out .,$(foreach d,$(DIRS),$(if $(wildcard $(d)/$(MAKEFILE)),$(d)))) | xargs -I{} $(MAKE) -C {} clean
 
 .PHONY:	distclean
-distclean:
-	rm -rf $(REMOVABLE_FILES)
+distclean:	clean
+	rm -rf $(TOPLEVEL_TARGETS)
 
