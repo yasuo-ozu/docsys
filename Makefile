@@ -15,15 +15,15 @@ default:	toplevels
 endif
 
 # Make config
+MAKEFILE=$(firstword $(MAKEFILE_LIST))
 VPATH=$(SYSDIR)
 SHELL=/bin/bash			# Shell to run Makefile rules
 .DELETE_ON_ERROR: ;		# Delete .SECONDARY or .INTERMEDIATE files when error
-$(MAKEFILE_LIST): ;		# Suppress regenerating Makefile
+$(MAKEFILE): ;			# Suppress regenerating Makefile
 .SUFFIXES: ;			# Disable implicit rules
 
 SYSDIR:=$(abspath $(if $(filter $(DOCSYS),$(notdir $(CURDIR))),.,$(DOCSYS)))
 DIRS:=$(shell find . -type d | sed -e '/^\.\/\.[^\/]\+/d')
-MAKEFILE=Makefile
 uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 
 
@@ -119,3 +119,7 @@ clean:
 distclean:	clean
 	rm -rf $(TOPLEVEL_TARGETS)
 
+# Use Makefile in subdirs
+DIR_WITH_MAKEFILE:=$(foreach d,$(wildcard ./*),$(if $(wildcard $(d)/$(MAKEFILE)),$(d)))
+$(foreach d,$(DIR_WITH_MAKEFILE),$(d)/%):
+	@$(MAKE) -C $(firstword $(subst /, ,$@)) $(shell echo $@ | sed -e 's/^[^\/]\+\///')
