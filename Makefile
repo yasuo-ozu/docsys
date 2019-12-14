@@ -3,7 +3,7 @@
 DOCSYS=.docsys
 OPEN?=
 FINAL_TARGETS=pdf
-VIEWER_pdf=evince
+VIEWER_pdf=evince FILE &
 
 -include $(CURDIR)/include.mk
 
@@ -54,7 +54,7 @@ open:	$(OPEN)
 ifndef OPEN
 	$(error Invalid OPEN variable)
 else
-	$(VIEWER_$(patsubst $(basename $(OPEN)).%,%,$(OPEN))) $^
+	$(subst FILE,$^,$(VIEWER_$(patsubst $(basename $(OPEN)).%,%,$(OPEN))))
 endif
 endif
 
