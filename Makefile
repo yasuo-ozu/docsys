@@ -3,7 +3,7 @@
 DOCSYS=.docsys
 OPEN?=
 FINAL_TARGETS=pdf
-VIEWER_pdf=evince FILE &
+VIEWER_pdf=evince FILE  &>/dev/null &
 
 -include $(CURDIR)/include.mk
 
