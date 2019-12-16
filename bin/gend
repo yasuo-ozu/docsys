@@ -15,10 +15,11 @@ if ($ext == "tex") {
 			(my $base2 = $file2) =~ s{\.[^.]+$}{}g;
 			(my $ident2 = $base2) =~ s{/}{_DS_}g;
 			$ident2 =~ s{\.}{_DOT_}g;
+			print "ifeq (,\$(filter $base2.d,\$(MAKEFILE_LIST)))\n";
 			print "-include $base2.d\n";
-			print "DEPS_$ident+=$file2\n";
-			print "DEPS_$ident+=\$(DEPS_$ident2)\n";
-			print "REFS_$ident2+=$file\n";
+			print "endif\n";
+			print "DEPS_$ident:=\$(DEPS_$ident) $file2 \$(DEPS_$ident2)\n";
+			print "REFS_$ident2:=\$REFS_$ident2 $file\n";
 		}
 	}
 	print "$base.dvi:	\$(DEPS_$ident)\n";
