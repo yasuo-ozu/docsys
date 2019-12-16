@@ -14,10 +14,10 @@ SOURCES_snm+=tex
 SOURCES_toc+=tex
 
 %.pdf:	%.dvi $(SYSDIR)
-	dvipdfmx $(basename $<) 2>&1
-	qpdf --linearize $@ linearized_$@
+	cd $(dir $<); dvipdfmx $(notdir $(basename $<)) 2>&1
+	cd $(dir $<); qpdf --linearize $(notdir $@) linearized_$(notdir $@)
 	rm -f $@
-	mv linearized_$@ $@
+	cd $(dir $<); mv linearized_$(notdir $@) $(notdir $@)
 	
 ifeq (,$(wildcard $(dir $<)/reference.bib))
 reference.bib:
@@ -31,18 +31,18 @@ PBIBTEX_BIN?=pbibtex
 .SECONDARY:	%.dvi
 %.dvi:	%.tex reference.bib $(SYSDIR)
 	@echo $(TEX_BIN) $(TEX_FLAGS) $<
-	@$(TEX_BIN) $(TEX_FLAGS) $< 1>/dev/null; if [ ! -f $(basename $<).dvi ]; then\
-		cat $(basename $<).log | grep -e "^!" -A 10 1>&2 ;\
+	@cd $(dir $<); $(TEX_BIN) $(TEX_FLAGS) $(notdir $<) 1>/dev/null; if [ ! -f $(notdir $(basename $<)).dvi ]; then\
+		cat $(notdir $(basename $<)).log | grep -e "^!" -A 10 1>&2 ;\
 		false ;\
 	fi
-ifeq (,$(shell [ -s $(dir $<)/reference.bib ] || echo n))
+ifeq (,$(shell [ -s $(CURDIR)/reference.bib ] || echo n))
 	cd $(dir $<); $(PBIBTEX_BIN) $(notdir $(basename $<))
-	$(TEX_BIN) $(TEX_FLAGS) $<  &>/dev/null
+	cd $(dir $<); $(TEX_BIN) $(TEX_FLAGS) $(notdir $<)  &>/dev/null
 endif
-	@for i in `seq 1 3`; do\
-		if grep -qF 'Rerun to get cross-references right.' $(basename $<).log; then\
+	@cd $(dir $<); for i in `seq 1 3`; do\
+		if grep -qF 'Rerun to get cross-references right.' $(notdir $(basename $<)).log; then\
 			echo $(TEX_BIN) $(TEX_FLAGS) $< ;\
-			$(TEX_BIN) $(TEX_FLAGS) $< &>/dev/null; \
+			$(TEX_BIN) $(TEX_FLAGS) $(notdir $<) &>/dev/null; \
 		else exit 0;\
 		fi;\
 	done
