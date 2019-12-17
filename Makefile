@@ -15,14 +15,14 @@ default:	toplevels
 endif
 
 # Make config
-MAKEFILE=$(firstword $(MAKEFILE_LIST))
+MAKEFILE=$(notdir $(firstword $(MAKEFILE_LIST)))
 VPATH=$(SYSDIR)
 SHELL=/bin/bash			# Shell to run Makefile rules
 .DELETE_ON_ERROR: ;		# Delete .SECONDARY or .INTERMEDIATE files when error
 $(MAKEFILE): ;			# Suppress regenerating Makefile
 .SUFFIXES: ;			# Disable implicit rules
 
-SYSDIR:=$(abspath $(if $(filter $(DOCSYS),$(notdir $(CURDIR))),.,$(DOCSYS)))
+SYSDIR:=$(abspath $(if $(wildcard $(DOCSYS)),$(DOCSYS),$(if $(shell [ -h $(firstword $(MAKEFILE_LIST)) ] && echo t),$(dir $(dir $(firstword $(MAKEFILE_LIST)))/$(shell readlink $(firstword $(MAKEFILE)))),$(dir $(firstword $(MAKEFILE_LIST))))))
 DIRS:=$(shell find . -type d | sed -e '/^\.\/\.[^\/]\+/d')
 uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 

@@ -1,0 +1,24 @@
+\documentclass{jsarticle}
+\usepackage{amsmath,amssymb}
+\usepackage[dvipdfmx, hiresbb]{graphicx}
+\usepackage{fancybox}
+\usepackage{ascmac}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{physics}
+\usepackage{bm}
+\fancypagestyle{mypagestyle}{%
+	\lhead{}%ヘッダ左を空に
+	\rhead{}%ヘッダ右を空に
+	\cfoot{\thepage / \pageref{LastPage}}%フッタ中央に"今のページ数/総ページ数"を設定
+	\renewcommand{\headrulewidth}{0.0pt}%ヘッダの線を消す
+}
+\pagestyle{mypagestyle}
+\title{Simple template}
+\author{The author}
+\begin{document}
+\maketitle
+aa
+\end{document}
+% vim: set ft=tex :
+
