@@ -114,19 +114,22 @@ endif
 REMOVABLE_FILES:=$(INTERMEDIATES) $(TARGETS)
 
 # Use Makefile in subdirs
-$(foreach d,$(DIR_WITH_MAKEFILE),$(d)/%):
+$(addsuffix /%,$(DIR_WITH_MAKEFILE)):
 	@$(MAKE) -C $(firstword $(subst /, ,$@)) $(shell echo $@ | sed -e 's/^[^\/]\+\///')
-$(foreach d,$(DIR_WITH_MAKEFILE),$(d)/clean):
-	@$(MAKE) -C $(firstword $(subst /, ,$@)) clean || :
+$(addsuffix /clean,$(DIR_WITH_MAKEFILE)):
+	@$(MAKE) -C $(firstword $(subst /, ,$@)) -n clean && $(MAKE) -C $(firstword $(subst /, ,$@)) clean
+$(addsuffix /distclean,$(DIR_WITH_MAKEFILE)):
+	@$(MAKE) -C $(firstword $(subst /, ,$@)) -n distclean && $(MAKE) -C $(firstword $(subst /, ,$@)) distclean
 
-.PHONY:	$(foreach d,$(DIR_WITH_MAKEFILE),$(d)/clean)
+.PHONY:	$(addsuffix /clean,$(DIR_WITH_MAKEFILE))
 .PHONY:	clean
-clean:	$(foreach d,$(DIR_WITH_MAKEFILE),$(d)/clean)
+clean:	$(addsuffix /clean,$(DIR_WITH_MAKEFILE))
 	rm -rf $(filter-out $(TOPLEVEL_TARGETS),$(REMOVABLE_FILES))
 	@echo $(filter-out .,$(foreach d,$(DIRS),$(if $(wildcard $(d)/$(MAKEFILE)),$(d)))) | xargs -I{} $(MAKE) -C {} clean
 	@echo info: To delete all generated files, run $(MAKE) distclean
 
+.PHONY:	$(addsuffix /distclean,$(DIR_WITH_MAKEFILE))
 .PHONY:	distclean
-distclean:	clean
+distclean:	clean $(addsuffix /distclean,$(DIR_WITH_MAKEFILE))
 	rm -rf $(TOPLEVEL_TARGETS)
 
