@@ -37,6 +37,7 @@ ifeq (,$(wildcard $(CURDIR)/reference.bib))
 else
 %.dvi:	%.tex reference.bib $(SYSDIR)
 endif
+	rm -f $@
 	@echo $(TEX_BIN) $(TEX_FLAGS) $<
 	@cd $(dir $<); $(TEX_BIN) $(TEX_FLAGS) $(notdir $<) 1>/dev/null; if [ ! -f $(notdir $(basename $<)).dvi ]; then\
 		cat $(notdir $(basename $<)).log | grep -e "^!" -A 10 1>&2 ;\
