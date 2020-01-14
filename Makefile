@@ -23,7 +23,9 @@ $(MAKEFILE): ;			# Suppress regenerating Makefile
 .SUFFIXES: ;			# Disable implicit rules
 
 SYSDIR:=$(abspath $(if $(wildcard $(DOCSYS)),$(DOCSYS),$(if $(shell [ -h $(firstword $(MAKEFILE_LIST)) ] && echo t),$(dir $(dir $(firstword $(MAKEFILE_LIST)))/$(shell readlink $(firstword $(MAKEFILE)))),$(dir $(firstword $(MAKEFILE_LIST))))))
-DIRS:=$(shell find . -type d | sed -e '/^\.\/\.[^\/]\+/d')
+DIRS_BASE:=$(shell find . -type d | sed -e '/^\.\/\.[^\/]\+/d')
+DIR_WITH_MAKEFILE:=$(foreach d,$(wildcard ./*),$(if $(wildcard $(d)/$(MAKEFILE)),$(d)))
+DIRS:=$(foreach d,$(DIRS_BASE),$(filter-out $(foreach e,$(DIR_WITH_MAKEFILE),$(e) $(e)/%),$(d)))
 uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 
 
@@ -63,6 +65,7 @@ endif
 info:
 	+echo "SYSDIR = $(SYSDIR)"
 	+echo "DIRS = $(DIRS)"
+	+echo "DIR_WITH_MAKEFILE = $(DIR_WITH_MAKEFILE)"
 ifdef OPEN
 	+echo "OPEN = $(OPEN)"
 	+echo "VIEWER_$(OPENSFX) = $(VIEWER_$(OPENSFX))"
@@ -110,8 +113,15 @@ endif
 
 REMOVABLE_FILES:=$(INTERMEDIATES) $(TARGETS)
 
+# Use Makefile in subdirs
+$(foreach d,$(DIR_WITH_MAKEFILE),$(d)/%):
+	@$(MAKE) -C $(firstword $(subst /, ,$@)) $(shell echo $@ | sed -e 's/^[^\/]\+\///')
+$(foreach d,$(DIR_WITH_MAKEFILE),$(d)/clean):
+	@$(MAKE) -C $(firstword $(subst /, ,$@)) clean || :
+
+.PHONY:	$(foreach d,$(DIR_WITH_MAKEFILE),$(d)/clean)
 .PHONY:	clean
-clean:
+clean:	$(foreach d,$(DIR_WITH_MAKEFILE),$(d)/clean)
 	rm -rf $(filter-out $(TOPLEVEL_TARGETS),$(REMOVABLE_FILES))
 	@echo $(filter-out .,$(foreach d,$(DIRS),$(if $(wildcard $(d)/$(MAKEFILE)),$(d)))) | xargs -I{} $(MAKE) -C {} clean
 	@echo info: To delete all generated files, run $(MAKE) distclean
@@ -120,7 +130,3 @@ clean:
 distclean:	clean
 	rm -rf $(TOPLEVEL_TARGETS)
 
-# Use Makefile in subdirs
-DIR_WITH_MAKEFILE:=$(foreach d,$(wildcard ./*),$(if $(wildcard $(d)/$(MAKEFILE)),$(d)))
-$(foreach d,$(DIR_WITH_MAKEFILE),$(d)/%):
-	@$(MAKE) -C $(firstword $(subst /, ,$@)) $(shell echo $@ | sed -e 's/^[^\/]\+\///')
