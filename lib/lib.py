@@ -11,13 +11,12 @@ for s in inspect.stack()[1:]:
         break
 
 if parent_module != None or parent_module.__name__ == "__main__":
-    print(sys.argv)
     if len(sys.argv) < 2:
         print('Error: output filename should be specified.', file=sys.stderr)
         sys.exit(1)
 
     SCRIPT_NAME = parent_module.__file__   # ./python/script.py
-    SCRIPT_BASE = os.path.splitext(SCRIPT_NAME)     # ./python/script
+    SCRIPT_BASE = os.path.splitext(SCRIPT_NAME)[0]     # ./python/script
     SCRIPT_DIR = os.path.dirname(SCRIPT_NAME)
     OUTPUT = sys.argv[1]        # ./python/script_image.png
     BASENAME = os.path.splitext(OUTPUT)[0]  # ./python/script_image
@@ -25,7 +24,7 @@ if parent_module != None or parent_module.__name__ == "__main__":
     FACTOR = ""
     if os.path.abspath(BASENAME).startswith(os.path.abspath(SCRIPT_BASE) + "_"):
         FACTOR = os.path.abspath(BASENAME)[len(os.path.abspath(SCRIPT_BASE)) + 1:]  # image
-    SUFFIX = os.path.splitext(OUTPUT)[1]    # png
+    SUFFIX = os.path.splitext(OUTPUT)[1][1:]    # png
     
     def __compare_path(p1, p2):
         if "%" in p2:
@@ -51,7 +50,7 @@ if parent_module != None or parent_module.__name__ == "__main__":
                 m = includeRe.search(x)
                 if m != None:
                     for arg in x[m.regs[0][1]:-1].split(","):
-                        arg = arg.split()
+                        arg = arg.strip()
                         m = moduleRe.search(arg)
                         if m != None:
                             ret.append(arg)
@@ -59,9 +58,7 @@ if parent_module != None or parent_module.__name__ == "__main__":
                             m = moduleAsRe.search(arg)
                             if m != None:
                                 ret.append(m.group(1))
-                            else:
-                                print('Error: invalid import term: ' + arg, file=sys.stderr)
-                                sys.exit(1)
+        return ret
                                 
     def __get_imported(file):
         ret = []
@@ -74,16 +71,14 @@ if parent_module != None or parent_module.__name__ == "__main__":
         compared, PERCENT_STR = __compare_path(os.path.abspath(BASENAME), os.path.abspath(SCRIPT_DIR + "/" + os.path.splitext(out)[0]))
         if SUFFIX == "d" and compared:
             a += __get_imported(SCRIPT_NAME)
-            p_out = pathlib.Path(BASENAME + "." + os.path.splitext(out)[1])
-            rel_out = p_out.relative_to(p_out.cwd())
+            rel_out = BASENAME + os.path.splitext(out)[1]
             id_out = os.path.splitext(rel_out)[0].replace("/", "_DS_")
             with open(OUTPUT, mode='w') as fd:
                 for f in a:
                     if f.startswith("."):
                         f = os.path.basename(SCRIPT_BASE) + f
                     f.replace("%", PERCENT_STR)
-                    p_f = pathlib.Path(SCRIPT_DIR + "/" + f)
-                    rel_f = p_f.relative_to(p_f.cwd())
+                    rel_f = SCRIPT_DIR + "/" + f
                     id_f = os.path.splitext(rel_f)[0].replace("/", "_DS_")
                     f_dep = os.path.splitext(f)[0] + ".d"
                     fd.write("ifeq (,$(filter %s,$(MAKEFILE_LIST)))\n-include %s\nendif\n" % (f_dep, f_dep))

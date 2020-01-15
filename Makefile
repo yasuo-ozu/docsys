@@ -123,26 +123,28 @@ $(addsuffix /distclean,$(DIR_WITH_MAKEFILE)):
 
 # Script rules
 SCRIPT_SUFFIXES=py sh run
-SCRIPT_COMMAND_py=PYTHONPATH=$(SYSDIR)/lib python 
+SCRIPT_COMMAND_py=PYTHONPATH=$(SYSDIR)/lib PYTHONPYCACHEPREFIX=temp python 
 SCRIPT_COMMAND_sh=bash
 SCRIPT_COMMAND_run=env
-SCRIPTS=$(foreach d,$(DIRS),$(wildcard $(addprefix $(d)/*.,$(SCRIPT_SUFFIXES))))
+SCRIPTS:=$(foreach d,$(DIRS),$(wildcard $(addprefix $(d)/*.,$(SCRIPT_SUFFIXES))))
+SCRIPTS_HELPER:=$(call uniq,$(addsuffix include.am,$(dir $(SCRIPTS))))
 
-$(addsuffix _generated.d,$(SCRIPTS)):	$(foreach s,$(SCRIPTS),$(if $(filter $(basename $(s))%,$@),$(s)))
-	@echo '$(basename $(subst _generated.d,,$@))%:	$(subst _generated.d,,$@)' > "$@"
-	@echo '	$(SCRIPT_COMMAND_$(patsubst .%,%,$(suffix $(subst _generated.d,,$@)))) $$< $$@ | tee $$@.out' >> "$@"
-	@echo '	@[ ! -f "$$@" ] && mv "$$@.out" "$$@"' >> "$@"
-	@echo '	@rm -rf $$@.out' >> "$@"
+$(SCRIPTS_HELPER):	$(SCRIPTS)
+	@echo $(SCRIPTS)
+	@: > "$@"
+	@for FILE in $(foreach s,$(SCRIPTS),$(if $(filter $(abspath $(dir $@))%,$(abspath $(s))),$(s))) ; do \
+	echo '$$(basename '$$FILE')%:	'$$FILE >> "$@" ; \
+	echo '	$$(SCRIPT_COMMAND_$$(patsubst .%,%,$$(suffix '$$FILE'))) $$< $$@' >> "$@" ; done
 
--include $(addsuffix _generated.d,$(SCRIPTS))
-REMOVABLE_FILES:=$(REMOVABLE_FILES) $(addsuffix _generated.d,$(SCRIPTS))
+-include $(SCRIPTS_HELPER)
+REMOVABLE_FILES:=$(REMOVABLE_FILES) $(SCRIPTS_HELPER)
 
 # clean
 
 .PHONY:	$(addsuffix /clean,$(DIR_WITH_MAKEFILE))
 .PHONY:	clean
 clean:	$(addsuffix /clean,$(DIR_WITH_MAKEFILE))
-	rm -rf $(filter-out $(TOPLEVEL_TARGETS),$(REMOVABLE_FILES))
+	rm -rf $(filter-out $(TOPLEVEL_TARGETS),$(REMOVABLE_FILES)) temp
 	@echo $(filter-out .,$(foreach d,$(DIRS),$(if $(wildcard $(d)/$(MAKEFILE)),$(d)))) | xargs -I{} $(MAKE) -C {} clean
 	@echo info: To delete all generated files, run $(MAKE) distclean
 
