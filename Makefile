@@ -121,6 +121,24 @@ $(addsuffix /clean,$(DIR_WITH_MAKEFILE)):
 $(addsuffix /distclean,$(DIR_WITH_MAKEFILE)):
 	@$(MAKE) -C $(firstword $(subst /, ,$@)) -n distclean && $(MAKE) -C $(firstword $(subst /, ,$@)) distclean
 
+# Script rules
+SCRIPT_SUFFIXES=py sh run
+SCRIPT_COMMAND_py=PYTHONPATH=$(SYSDIR)/lib python 
+SCRIPT_COMMAND_sh=bash
+SCRIPT_COMMAND_run=env
+SCRIPTS=$(foreach d,$(DIRS),$(wildcard $(addprefix $(d)/*.,$(SCRIPT_SUFFIXES))))
+
+$(addsuffix _generated.d,$(SCRIPTS)):	$(foreach s,$(SCRIPTS),$(if $(filter $(basename $(s))%,$@),$(s)))
+	@echo '$(basename $(subst _generated.d,,$@))%:	$(subst _generated.d,,$@)' > "$@"
+	@echo '	$(SCRIPT_COMMAND_$(patsubst .%,%,$(suffix $(subst _generated.d,,$@)))) $$< $$@ | tee $$@.out' >> "$@"
+	@echo '	@[ ! -f "$$@" ] && mv "$$@.out" "$$@"' >> "$@"
+	@echo '	@rm -rf $$@.out' >> "$@"
+
+-include $(addsuffix _generated.d,$(SCRIPTS))
+REMOVABLE_FILES:=$(REMOVABLE_FILES) $(addsuffix _generated.d,$(SCRIPTS))
+
+# clean
+
 .PHONY:	$(addsuffix /clean,$(DIR_WITH_MAKEFILE))
 .PHONY:	clean
 clean:	$(addsuffix /clean,$(DIR_WITH_MAKEFILE))
@@ -132,4 +150,3 @@ clean:	$(addsuffix /clean,$(DIR_WITH_MAKEFILE))
 .PHONY:	distclean
 distclean:	clean $(addsuffix /distclean,$(DIR_WITH_MAKEFILE))
 	rm -rf $(TOPLEVEL_TARGETS)
-
