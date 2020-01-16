@@ -6,11 +6,11 @@ if __name__ == "__main__":
 parent_module = None
 for s in inspect.stack()[1:]:
     m = inspect.getmodule(s[0])
-    if m:
+    if m and m.__name__ == "__main__":
         parent_module = m
         break
 
-if parent_module != None or parent_module.__name__ == "__main__":
+if parent_module != None and parent_module.__name__ == "__main__":
     if len(sys.argv) < 2:
         print('Error: output filename should be specified.', file=sys.stderr)
         sys.exit(1)
