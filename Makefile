@@ -130,10 +130,11 @@ SCRIPTS:=$(foreach d,$(DIRS),$(wildcard $(addprefix $(d)/*.,$(SCRIPT_SUFFIXES)))
 SCRIPTS_HELPER:=$(call uniq,$(addsuffix include.am,$(dir $(SCRIPTS))))
 
 $(SCRIPTS_HELPER):	$(SCRIPTS)
-	@echo $(SCRIPTS)
-	@: > "$@"
-	@for FILE in $(foreach s,$(SCRIPTS),$(if $(filter $(abspath $(dir $@))%,$(abspath $(s))),$(s))) ; do \
-	echo '$$(basename '$$FILE')%:	'$$FILE >> "$@" ; \
+	@echo '-include $$(wildcard $(dir $@)*.d)' > "$@"
+	@for FILE in $(patsubst ./%,%,$(foreach s,$(SCRIPTS),$(if $(filter $(abspath $(dir $@))%,$(abspath $(s))),$(s)))) ; do \
+	echo '$$(basename '$$FILE').d:	'$$FILE >> "$@" ; \
+	echo '	$$(SCRIPT_COMMAND_$$(patsubst .%,%,$$(suffix '$$FILE'))) $$< $$@' >> "$@" ; \
+	echo '$$(basename '$$FILE')_%.d:	'$$FILE >> "$@" ; \
 	echo '	$$(SCRIPT_COMMAND_$$(patsubst .%,%,$$(suffix '$$FILE'))) $$< $$@' >> "$@" ; done
 
 -include $(SCRIPTS_HELPER)
