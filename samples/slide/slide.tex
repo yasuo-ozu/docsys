@@ -70,22 +70,25 @@
 			overlay,
 			rectangle callout,
 			rounded corners=3pt,
-			inner sep=2pt
+			inner sep=10pt
 		}
 	}
 	\begin{frame}{blank page}
-		\only<2->{\begin{textblock*}{170pt}(0pt,160pt)
-			\tikz\node[fuki,callout absolute pointer={(-60pt,5pt)}]{\begin{minipage}{90pt}
+		\only<2->{\begin{textblock*}{70pt}(0.5\textwidth,60pt)
+			\tikz\node[fuki,callout absolute pointer={(-60pt,5pt)}]{\begin{minipage}{\textwidth}
+			\fontsize{20pt}{0pt}\selectfont
+			\centering
 			hello
-		\end{textblock*}}
+			\end{minipage}};\end{textblock*}}
 		\only<3->{\begin{textblock*}{20pt}(180pt,200pt)
 			\fontsize{20pt}{0pt}\selectfont
 			\raisebox{-12pt}{\tcbox[
         enhanced,         % これは必須
         frame hidden,     % 枠を消す. これも enhanced 必須
         colback=cyan!50!yellow,
-		]{world}}
+			]{world}}
 		\end{textblock*}}
 	\end{frame}
 \endgroup
+\end{document}
 
