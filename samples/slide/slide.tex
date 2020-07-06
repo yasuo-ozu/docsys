@@ -1,0 +1,94 @@
+\documentclass[12pt,dvipdfmx]{beamer}
+\usetheme{metropolis}
+%\documentclass[slide,25pt,papersize]{jsarticle}
+\usepackage{otf}
+\usepackage{minijs}
+\renewcommand{\kanjifamilydefault}{\gtdefault}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[dvipdfmx]{}
+\usepackage{fancybox}
+\usepackage{ascmac}
+%\usepackage{fancyhdr}
+%\usepackage{lastpage}
+\usepackage{listings}
+\usepackage{physics}
+\usepackage{bm}
+\usepackage{ulem}
+\usepackage{color}
+\usepackage{tikz}
+\usepackage[absolute,overlay]{textpos}
+%\usepackage[colorgrid,gridunit=pt,texcoord]{eso-pic}
+\usefonttheme{professionalfonts}
+\usetikzlibrary{positioning,calc,shapes,snakes,shapes.callouts,shapes.arrows,decorations,decorations.pathmorphing}
+\usepackage{tcolorbox}
+\tcbuselibrary{theorems}
+\tcbuselibrary{theorems,skins}
+\usepackage{setspace}
+%\usepackage{fancyhdr}
+
+\lstset{
+ 	breaklines = true,
+ 	breakindent = 10pt,
+ 	basicstyle = \ttfamily\scriptsize,
+ 	classoffset = 0,
+ 	%枠 "t"は上に線を記載, "T"は上に二重線を記載
+	%他オプション：leftline，topline，bottomline，lines，single，shadowbox
+ 	frame = tbrl,
+ 	%frameまでの間隔(行番号とプログラムの間)
+ 	framesep = 5pt,
+ 	%行番号の位置
+ 	numbers = left,
+	%行番号の間隔
+ 	stepnumber = 1,
+	%行番号の書体
+ 	numberstyle = \tiny,
+	%タブの大きさ
+ 	tabsize = 4,
+ 	%キャプションの場所("tb"ならば上下両方に記載)
+ 	captionpos = t
+}
+
+\title{title}
+\author{author}
+\date{date}
+\institute{institute}
+
+\begin{document}
+\thispagestyle{empty}
+\frame{\maketitle}
+
+
+\begingroup 
+	\setbeamertemplate{frametitle}{}
+	%\setbeamertemplate{footline}{}
+	\setbeamertemplate{navigation symbols}{}
+	\setbeamercolor{background canvas}{bg=green!50!white}
+
+	\tikzset{
+		fuki/.style={
+			fill=black!20!white,
+			overlay,
+			rectangle callout,
+			rounded corners=3pt,
+			inner sep=10pt
+		}
+	}
+	\begin{frame}{blank page}
+		\only<2->{\begin{textblock*}{70pt}(0.5\textwidth,60pt)
+			\tikz\node[fuki,callout absolute pointer={(-60pt,5pt)}]{\begin{minipage}{\textwidth}
+			\fontsize{20pt}{0pt}\selectfont
+			\centering
+			hello
+			\end{minipage}};\end{textblock*}}
+		\only<3->{\begin{textblock*}{20pt}(180pt,200pt)
+			\fontsize{20pt}{0pt}\selectfont
+			\raisebox{-12pt}{\tcbox[
+        enhanced,         % これは必須
+        frame hidden,     % 枠を消す. これも enhanced 必須
+        colback=cyan!50!yellow,
+			]{world}}
+		\end{textblock*}}
+	\end{frame}
+\endgroup
+\end{document}
+
