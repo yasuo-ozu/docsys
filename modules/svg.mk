@@ -4,8 +4,8 @@ SOURCES_pdf+=svg
 
 %.png:	%.svg
 	#convert -units PixelsPerInch -density 72x72 $< $@
-	inkscape -f $< -e $p
+	inkscape --export-type=png $< -o $$
 	
 %.pdf:	%.svg
-	inkscape -f $< -A $@
+	inkscape --export-type=pdf $< -o $@
 
