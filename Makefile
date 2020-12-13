@@ -23,9 +23,15 @@ $(MAKEFILE): ;			# Suppress regenerating Makefile
 .SUFFIXES: ;			# Disable implicit rules
 
 SYSDIR:=$(abspath $(if $(wildcard $(DOCSYS)),$(DOCSYS),$(if $(shell [ -h $(firstword $(MAKEFILE_LIST)) ] && echo t),$(dir $(dir $(firstword $(MAKEFILE_LIST)))/$(shell readlink $(firstword $(MAKEFILE)))),$(dir $(firstword $(MAKEFILE_LIST))))))
-DIRS_BASE:=$(shell find . -type d | sed -e '/^\.\/\.[^\/]\+/d')
+#DIRS_BASE:=$(shell find . -type d | sed -e '/^\.\/\.[^\/]\+/d')
 DIR_WITH_MAKEFILE:=$(foreach d,$(wildcard ./*),$(if $(wildcard $(d)/$(MAKEFILE)),$(d)))
-DIRS:=$(foreach d,$(DIRS_BASE),$(filter-out $(foreach e,$(DIR_WITH_MAKEFILE),$(e) $(e)/%),$(d)))
+GLOBAL_TEMPDIR:=temp
+TEMPDIRS:=$(GLOBAL_TEMPDIR)
+IGNORE_DIRS:=$(DIR_WITH_MAKEFILE) $(TEMPDIRS) $(DOCSYS)
+IGNORE_DIRS:=$(IGNORE_DIRS) $(foreach d,$(IGNORE_DIRS),./$(d))
+#DIRS:=$(foreach d,$(DIRS_BASE),$(filter-out $(foreach e,$(IGNORE_DIRS),$(e) $(e)/%),$(d)))
+DIRS:=$(shell find . $(foreach d,$(IGNORE_DIRS), -wholename "$(d)" -prune -o ) -type d | sed -e '/^\.\/\.[^\/]\+/d')
+DIRS:=$(filter-out $(foreach e,$(IGNORE_DIRS),./temp $(e) $(e)/%),$(DIRS))
 uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 
 
@@ -44,6 +50,7 @@ UNREFED_TARGETS:=$(foreach f,$(TARGETS),$(if $(wildcard $(basename $(f)).ref),,$
 ROOT_UNREFED_TARGETS=$(foreach file,$(UNREFED_TARGETS),$(if $(patsubst ./,,$(dir $(file))),,$(file)))
 TOPLEVEL_TARGETS2:=$(foreach f2,$(FINAL_TARGETS),$(filter %.$(f2),$(ROOT_UNREFED_TARGETS)))
 TOPLEVEL_TARGETS:=$(foreach f,$(TOPLEVEL_TARGETS2),$(if $(REFS_$($(shell echo $(basename $(f)) | sed -e 's/\//_DS_/g' | sed -e 's/\./_DOT_/g'))),,$(f)))
+
 
 ifdef OPEN
 # Convert source suffix to target suffix
@@ -65,6 +72,7 @@ endif
 info:
 	+echo "SYSDIR = $(SYSDIR)"
 	+echo "DIRS = $(DIRS)"
+	+echo "IGNORE_DIRS = $(IGNORE_DIRS)"
 	+echo "DIR_WITH_MAKEFILE = $(DIR_WITH_MAKEFILE)"
 ifdef OPEN
 	+echo "OPEN = $(OPEN)"
@@ -111,7 +119,7 @@ else
 endif
 endif
 
-REMOVABLE_FILES:=$(INTERMEDIATES) $(TARGETS)
+REMOVABLE_FILES:=$(INTERMEDIATES) $(TARGETS) $(TEMPDIRS)
 
 # Use Makefile in subdirs
 $(addsuffix /%,$(DIR_WITH_MAKEFILE)):
@@ -140,12 +148,14 @@ $(SCRIPTS_HELPER):	$(SCRIPTS)
 -include $(SCRIPTS_HELPER)
 REMOVABLE_FILES:=$(REMOVABLE_FILES) $(SCRIPTS_HELPER)
 
+GITIGNORE_FILES:=$(filter-out $(TOPLEVEL_TARGETS),$(REMOVABLE_FILES))
+
 # clean
 
 .PHONY:	$(addsuffix /clean,$(DIR_WITH_MAKEFILE))
 .PHONY:	clean
 clean:	$(addsuffix /clean,$(DIR_WITH_MAKEFILE))
-	rm -rf $(filter-out $(TOPLEVEL_TARGETS),$(REMOVABLE_FILES)) temp
+	rm -rf $(GITIGNORE_FILES)
 	@echo $(filter-out .,$(foreach d,$(DIRS),$(if $(wildcard $(d)/$(MAKEFILE)),$(d)))) | xargs -I{} $(MAKE) -C {} clean
 	@echo info: To delete all generated files, run $(MAKE) distclean
 
