@@ -12,8 +12,8 @@ define INSTALL_DEPS
 	eval $$(opam env) && \
 	[[ -e "$(SATYRISTES_PATH)" ]] && cat "$(SATYRISTES_PATH)" | sed -e 's/^\(.*\);;.*$$/\1/' | paste -s | sed -e 's/^.*(\s*dependencies\s*(\([^)]\+\)).*$$/\1/' | sed -e 's/\s/\n/g' | sed -e '/^\s*$$/d' | \
 	xargs -I{} env OPAMROOT="$(OPAM_ROOT)" opam install -y "satysfi-{}"
-	eval $$(opam env) && \
 	mkdir -p "$(SATYSFI_ROOT)"
+	eval $$(opam env) && \
 	OPAMROOT="$(OPAM_ROOT)" satyrographos install --output "$(SATYSFI_ROOT)/dist"
 endef
 
