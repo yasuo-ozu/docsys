@@ -98,23 +98,28 @@ def depends_end():
         fd.write("ifeq (,$(LOADED_%s))\n" % id_def)
         fd.write("LOADED_%s:=yes\n" % id_def)
         fd.write("REMOVABLE_FILES:=$(REMOVABLE_FILES) %s\n" % OUTPUT)
-        for (out, a) in __depends_list:
-            rel_ext = os.path.splitext(out)[1][1:]
-            rel_out = BASENAME + "." + rel_ext
-            id_out = os.path.splitext(rel_out)[0].replace("/", "_DS_")
-            for f in a:
-                rel_f = SCRIPT_DIR + "/" + f
-                id_f = os.path.splitext(rel_f)[0].replace("/", "_DS_")
-                f_dep = os.path.splitext(rel_f)[0] + ".d"
-                fd.write("ifeq (,$(filter %s,$(MAKEFILE_LIST)))\n-include %s\nendif\n" % (f_dep, f_dep))
-                fd.write("DEPS_%s:=$(DEPS_%s) %s $(DEPS_%s)\n" % (id_out, id_out, rel_f, id_f))
-                fd.write("REFS_%s:=$(REFS_%s) %s\n" % (id_f, id_f, rel_out))
+        if FACTOR == "":
+            for (out, a) in __depends_list:
+                rel_ext = os.path.splitext(out)[1][1:]
+                rel_out = BASENAME + "." + rel_ext
+                id_out = os.path.splitext(rel_out)[0].replace("/", "_DS_")
+                id_out = id_out.replace(".", "_DOT_")
+                id_out = id_out.replace("=", "_EQ_")
+                for f in a:
+                    rel_f = SCRIPT_DIR + "/" + f
+                    id_f = os.path.splitext(rel_f)[0].replace("/", "_DS_")
+                    id_f = id_f.replace(".", "_DOT_")
+                    id_f = id_f.replace("=", "_EQ_")
+                    f_dep = os.path.splitext(rel_f)[0] + ".d"
+                    fd.write("ifeq (,$(filter %s,$(MAKEFILE_LIST)))\n-include %s\nendif\n" % (f_dep, f_dep))
+                    fd.write("DEPS_%s:=$(DEPS_%s) %s $(DEPS_%s)\n" % (id_out, id_out, rel_f, id_f))
+                    fd.write("REFS_%s:=$(REFS_%s) %s\n" % (id_f, id_f, rel_out))
 #                fd.write("%s:\t$(DEPS_%s)\n" % (rel_out, id_out))
-            fd.write("%s:\t%s $(DEPS_%s)\n" % (rel_out, SCRIPT_NAME, id_out))
-            fd.write("\t$(SCRIPT_COMMAND_py) $< $@\n")
-            fd.write("%s_%%.%s:\t%s $(DEPS_%s)\n" % (BASENAME, rel_ext, SCRIPT_NAME, id_out))
-            fd.write("\t$(SCRIPT_COMMAND_py) $< $@\n")
-            fd.write("REMOVABLE_FILES:=$(REMOVABLE_FILES) %s\n" % rel_out)
+                fd.write("%s:\t%s $(DEPS_%s)\n" % (rel_out, SCRIPT_NAME, id_out))
+                fd.write("\t$(SCRIPT_COMMAND_py) $< $@\n")
+                fd.write("%s_%%.%s:\t%s $(DEPS_%s)\n" % (BASENAME, rel_ext, SCRIPT_NAME, id_out))
+                fd.write("\t$(SCRIPT_COMMAND_py) $< $@\n")
+                fd.write("REMOVABLE_FILES:=$(REMOVABLE_FILES) %s\n" % rel_out)
         fd.write("endif\n")
     sys.exit(0)
 atexit.register(depends_end)
