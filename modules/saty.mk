@@ -1,16 +1,12 @@
 TARGET_SUFFIXES+=pdf d osaty
 SOURCES_pdf+=saty
-SOURCES_osaty+=saty
-SOURCES_d+=osaty $(SOURCES_osaty)
+SOURCES_d+=saty
 
 %.pdf:	%.osaty
-	satysfi "$<" -o "$@"
+	SATYROGRAPHOS_EXPERIMENTAL=1 satyrographos satysfi -- -o $@ $<
 	
-.SECONDARY:	%.osaty
-%.osaty:	%.saty
-	cd "$(dir $<)"; cat "$<" | $(SYSDIR)/bin/unwrap "$(TMPDIR)" > "$@"
-
 .SECONDARY:	%.d
-%.d:	%.osaty $(patsubst %.saty,%.out.saty,$(wildcard ./*.saty) $(wildcard ./**/*.saty))
-	$(SYSDIR)/bin/gend "$<" "$(patsubst %.out.saty,%.pdf,$<)" > $@
+%.d:	%.saty
+	SATYROGRAPHOS_EXPERIMENTAL=1 satyrographos util deps -r -p --depfile $@ --mode pdf -o "$(basename $@)" $<
+	
 -include $(patsubst %.saty,%.d,$(wildcard ./*.saty) $(wildcard ./**/*.saty))
