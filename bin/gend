@@ -6,15 +6,17 @@ my $file = $ARGV[0];
 (my $base = $file) =~ s{\.[^.]+$}{}g;
 (my $ident = $base) =~ s{/}{_DS_}g;
 $ident =~ s{\.}{_DOT_}g;
+$ident =~ s{=}{_EQ_}g;
 open(FH, "< $file");
 if ($ext == "tex") {
 	while (<FH>) {
 		s/%.*$//;
-		while (s/[A-Za-z0-9_\-][A-Za-z0-9_\-\.\/]*\.(bmp|jpg|pdf|txt|saty|tex|eps)//) {
+		while (s/[A-Za-z0-9_\-=][A-Za-z0-9_\-\.\/=]*\.(bmp|jpg|pdf|txt|saty|tex|eps)//) {
 			my $file2 = $&;
 			(my $base2 = $file2) =~ s{\.[^.]+$}{}g;
 			(my $ident2 = $base2) =~ s{/}{_DS_}g;
 			$ident2 =~ s{\.}{_DOT_}g;
+			$ident2 =~ s{=}{_EQ_}g;
 			print "ifeq (,\$(filter $base2.d,\$(MAKEFILE_LIST)))\n";
 			print "-include $base2.d\n";
 			print "endif\n";
