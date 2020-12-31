@@ -67,25 +67,6 @@ else
 endif
 endif
 
-.PHONY: info
-.SILENT: info
-info:
-	+echo "SYSDIR = $(SYSDIR)"
-	+echo "DIRS = $(DIRS)"
-	+echo "IGNORE_DIRS = $(IGNORE_DIRS)"
-	+echo "DIR_WITH_MAKEFILE = $(DIR_WITH_MAKEFILE)"
-ifdef OPEN
-	+echo "OPEN = $(OPEN)"
-	+echo "VIEWER_$(OPENSFX) = $(VIEWER_$(OPENSFX))"
-endif
-	+echo "MAKEFILE = $(MAKEFILE)"
-	+echo "TARGETS = $(TARGETS)"
-	+echo "UNREFED_TARGETS = $(UNREFED_TARGETS)"
-	+echo "TOPLEVEL_TARGETS = $(TOPLEVEL_TARGETS)"
-	+echo "TARGET_SUFFIXES = $(TARGET_SUFFIXES)"
-	+echo "INTERMEDIATE_SUFFIXES = $(INTERMEDIATE_SUFFIXES)"
-	+echo -ne " $(foreach sf,$(call uniq,$(TARGET_SUFFIXES) $(INTERMEDIATE_SUFFIXES)),SOURCES_$(sf) = $(SOURCES_$(sf))\\n)"
-	
 .PHONY: toplevels
 toplevels:	$(TOPLEVEL_TARGETS)
 	
@@ -163,3 +144,24 @@ clean:	$(addsuffix /clean,$(DIR_WITH_MAKEFILE))
 .PHONY:	distclean
 distclean:	clean $(addsuffix /distclean,$(DIR_WITH_MAKEFILE))
 	rm -rf $(TOPLEVEL_TARGETS)
+	
+.PHONY: info
+.SILENT: info
+info:
+	+echo "SYSDIR = $(SYSDIR)"
+	+echo "DIRS = $(DIRS)"
+	+echo "GITIGNORE_FILES = $(GITIGNORE_FILES)"
+	+echo "IGNORE_DIRS = $(IGNORE_DIRS)"
+	+echo "DIR_WITH_MAKEFILE = $(DIR_WITH_MAKEFILE)"
+ifdef OPEN
+	+echo "OPEN = $(OPEN)"
+	+echo "VIEWER_$(OPENSFX) = $(VIEWER_$(OPENSFX))"
+endif
+	+echo "MAKEFILE = $(MAKEFILE)"
+	+echo "TARGETS = $(TARGETS)"
+	+echo "UNREFED_TARGETS = $(UNREFED_TARGETS)"
+	+echo "TOPLEVEL_TARGETS = $(TOPLEVEL_TARGETS)"
+	+echo "TARGET_SUFFIXES = $(TARGET_SUFFIXES)"
+	+echo "INTERMEDIATE_SUFFIXES = $(INTERMEDIATE_SUFFIXES)"
+	+echo -ne " $(foreach sf,$(call uniq,$(TARGET_SUFFIXES) $(INTERMEDIATE_SUFFIXES)),SOURCES_$(sf) = $(SOURCES_$(sf))\\n)"
+	
