@@ -1,29 +1,41 @@
 #!/bin/env perl
 
+sub make_ident {
+	my ($f) = @_;
+	$f =~ s{\.[^.]+$}{}g;
+	$f =~ s{/}{_DS_}g;
+	$f =~ s{\.}{_DOT_}g;
+	$f =~ s{=}{_EQ_}g;
+	return $f;
+}
+
 # $file is relative path from project root
-my $file = $ARGV[0];
+my ($file, $outext) = @ARGV;
 (my $ext = $file) =~ s{^.*\.}{}g;
 (my $base = $file) =~ s{\.[^.]+$}{}g;
-(my $ident = $base) =~ s{/}{_DS_}g;
-$ident =~ s{\.}{_DOT_}g;
-$ident =~ s{=}{_EQ_}g;
-open(FH, "< $file");
-if ($ext == "tex") {
+my $ident = &make_ident($file);
+my @deps = ();
+while (<STDIN>) {
+	s/\n//;
+	unshift(@deps, $_);
+}
+if ($ext == "tex" or $ext == "saty" or $ext == "satyg" or $ext == "satyh") {
+	open(FH, "< $file");
 	while (<FH>) {
 		s/%.*$//;
 		while (s/[A-Za-z0-9_\-=][A-Za-z0-9_\-\.\/=]*\.(bmp|jpg|pdf|txt|saty|tex|eps)//) {
-			my $file2 = $&;
-			(my $base2 = $file2) =~ s{\.[^.]+$}{}g;
-			(my $ident2 = $base2) =~ s{/}{_DS_}g;
-			$ident2 =~ s{\.}{_DOT_}g;
-			$ident2 =~ s{=}{_EQ_}g;
-			print "ifeq (,\$(filter $base2.d,\$(MAKEFILE_LIST)))\n";
-			print "-include $base2.d\n";
-			print "endif\n";
-			print "DEPS_$ident:=\$(DEPS_$ident) $file2 \$(DEPS_$ident2)\n";
-			print "REFS_$ident2:=\$(REFS_$ident2) $file\n";
+			unshift(@deps, $&);
 		}
 	}
-	print "$base.dvi:	\$(DEPS_$ident)\n";
 }
+foreach my $file2 (@deps) {
+	(my $base2 = $file2) =~ s{\.[^.]+$}{}g;
+	my $ident2 = &make_ident($file2);
+	print "ifeq (,\$(filter $base2.d,\$(MAKEFILE_LIST)))\n";
+	print "-include $base2.d\n";
+	print "endif\n";
+	print "DEPS_$ident:=\$(DEPS_$ident) $file2 \$(DEPS_$ident2)\n";
+	print "REFS_$ident2:=\$(REFS_$ident2) $file\n";
+}
+print "$base.$outext:	\$(DEPS_$ident)\n";
 close FH;

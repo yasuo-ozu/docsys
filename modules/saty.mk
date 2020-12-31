@@ -41,10 +41,23 @@ $(OPAM_ROOT):
 		rm -f "$(SATYSFI_OUTPUT_TEMPFILE)"; \
 	fi
 	# SATYROGRAPHOS_EXPERIMENTAL=1 satyrographos satysfi -- -C "$(SATYSFI_ROOT)" -o $@ $<
+
+define DEPS_RULE
+	eval $$(opam env) && \
+	SATYROGRAPHOS_EXPERIMENTAL=1 satyrographos util deps -r -p --depfile $2.tmp --mode pdf -o "OUTFILE" $1 2>&1 ; :
+	cat "$2.tmp" | sed -ne '/^OUTFILE/p' | tr ' ' '\n' | sed -e '1d;/^\//d;/^$$/d' | \
+	$(SYSDIR)/bin/gend "$1" "pdf" > $2
+	rm "$2.tmp"
+endef
 	
 .SECONDARY:	%.d
 %.d:	%.saty $(SATYSFI_ROOT)
-	eval $$(opam env) && \
-	SATYROGRAPHOS_EXPERIMENTAL=1 satyrographos util deps -r -p --depfile $@ --mode pdf -o "$(basename $@)" $< 2>&1 ; :
+	@$(call DEPS_RULE,$<,$@)
+
+%.d:	%.satyg $(SATYSFI_ROOT)
+	@$(call DEPS_RULE,$<,$@)
+
+%.d:	%.satyh $(SATYSFI_ROOT)
+	@$(call DEPS_RULE,$<,$@)
 	
 -include $(patsubst %.saty,%.d,$(wildcard ./*.saty) $(wildcard ./**/*.saty))
