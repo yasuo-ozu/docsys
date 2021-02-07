@@ -61,6 +61,6 @@ endif
 
 .SECONDARY:	%.d
 %.d:	%.tex
-	$(SYSDIR)/bin/gend "$<" "dvi" > $@
+	echo "" | $(SYSDIR)/bin/gend "$<" "dvi" > $@
 	
 -include $(foreach d,$(DIRS),$(patsubst %.tex,%.d,$(wildcard $(d)/*.tex)))
